@@ -9,10 +9,10 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
     body { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
-    .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); }
-    .glow { box-shadow: 0 0 20px rgba(139, 92, 246, 0.4); }
-    .btn-primary { transition: all 0.3s; }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+    .glass { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.18); }
+    .glow { box-shadow: 0 0 14px rgba(139, 92, 246, 0.35); }
+    .btn-primary { transition: all 0.2s; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.25); }
     .signal-long { background: linear-gradient(45deg, #22c55e, #16a34a); }
     .signal-short { background: linear-gradient(45deg, #ef4444, #dc2626); }
     .pulse { animation: pulse 2s infinite; }
@@ -29,34 +29,44 @@
     }
   </style>
 </head>
-<body class="text-white">
+<body class="text-white text-sm md:text-base">
   <!-- Toast Notification -->
   <div id="toast" class="fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-lg shadow-lg hidden">
     <p id="toast-message"></p>
   </div>
 
-  <div class="container mx-auto px-4 py-8 max-w-7xl">
+  <div class="container mx-auto px-3 py-4 max-w-5xl">
     <!-- Status Dashboard -->
-    <div id="status-dashboard" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
-      <div id="status-current-price" class="glass rounded-lg p-4"></div>
-      <div id="status-available-margin" class="glass rounded-lg p-4"></div>
-      <div id="status-open-position" class="glass rounded-lg p-4 col-span-2 md:col-span-1"></div>
-      <div id="status-open-orders" class="glass rounded-lg p-4 col-span-2 md:col-span-1"></div>
+    <div id="status-dashboard" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-center">
+      <div id="status-current-price" class="glass rounded-lg p-3 md:p-4"></div>
+      <div id="status-available-margin" class="glass rounded-lg p-3 md:p-4"></div>
+      <div id="status-open-position" class="glass rounded-lg p-3 md:p-4 col-span-2 md:col-span-1"></div>
+      <div id="status-open-orders" class="glass rounded-lg p-3 md:p-4 col-span-2 md:col-span-1"></div>
     </div>
 
-    <div class="grid lg:grid-cols-2 gap-8">
+    <div class="grid lg:grid-cols-2 gap-4">
       <!-- Manual Trade Panel -->
       <div class="lg:col-span-2">
-        <div class="glass rounded-2xl p-8 glow">
-          <h2 class="text-3xl font-bold mb-6 flex items-center gap-3">
-            <i class="fas fa-chart-line text-green-400"></i> Execute Manual Trade
-          </h2>
+        <div class="glass rounded-2xl p-4 md:p-6 glow">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2">
+              <i class="fas fa-chart-line text-green-400"></i> Manual Trade
+            </h2>
+            <div class="flex gap-2 text-xs md:text-sm">
+              <button id="btn-close-position" class="px-3 py-1.5 rounded-lg bg-red-600/80 hover:bg-red-700 flex items-center gap-1" onclick="closePosition()">
+                <i class="fas fa-door-open"></i><span>Close Position</span>
+              </button>
+              <button id="btn-cancel-orders" class="px-3 py-1.5 rounded-lg bg-amber-500/80 hover:bg-amber-600 flex items-center gap-1" onclick="cancelOpenOrders()">
+                <i class="fas fa-ban"></i><span>Cancel Orders</span>
+              </button>
+            </div>
+          </div>
 
-          <div class="grid md:grid-cols-2 gap-6 mb-8">
+          <div class="grid md:grid-cols-4 gap-3 mb-4 items-end">
             <!-- Pair -->
-            <div>
-              <label class="block text-sm font-medium mb-2">Trading Pair</label>
-              <select id="pair" class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 focus:border-violet-500 focus:outline-none">
+            <div class="md:col-span-1">
+              <label class="block text-xs font-medium mb-1">Pair</label>
+              <select id="pair" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm">
                 <option>SOL/USD</option>
                 <option>BTC/USD</option>
                 <option>ETH/USD</option>
@@ -64,41 +74,31 @@
               </select>
             </div>
 
-            <!-- Direction -->
-            <div>
-              <label class="block text-sm font-medium mb-2">Direction</label>
-              <div class="grid grid-cols-2 gap-4">
-                <button onclick="setDirection('LONG')" id="btn-long" class="py-4 rounded-lg font-bold text-lg signal-long text-white">
-                  <i class="fas fa-arrow-up mr-2"></i> LONG
-                </button>
-                <button onclick="setDirection('SHORT')" id="btn-short" class="py-4 rounded-lg font-bold text-lg bg-white/10 hover:bg-white/20">
-                  <i class="fas fa-arrow-down mr-2"></i> SHORT
-                </button>
-              </div>
-            </div>
-
             <!-- Leverage -->
-            <div>
-              <label class="block text-sm font-medium mb-2">Leverage</label>
-              <input type="number" id="leverage" value="20" min="1" max="50" class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 focus:border-violet-500 focus:outline-none"/>
+            <div class="md:col-span-1">
+              <label class="block text-xs font-medium mb-1">Leverage</label>
+              <input type="number" id="leverage" value="20" min="1" max="50" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm"/>
             </div>
 
             <!-- Position Size USD -->
-            <div>
-              <label class="block text-sm font-medium mb-2">Position Size (USD)</label>
-              <input type="number" step="1" id="size_usd" value="50" min="1" class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 focus:border-violet-500 focus:outline-none"/>
+            <div class="md:col-span-1">
+              <label class="block text-xs font-medium mb-1">Size (USD)</label>
+              <input type="number" step="1" id="size_usd" value="50" min="1" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm"/>
             </div>
 
             <!-- Take Profit Price -->
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium mb-2">Take Profit Price (Optional)</label>
-              <input type="number" step="0.01" id="tp_price" placeholder="Leave empty for no TP" class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 focus:border-violet-500 focus:outline-none"/>
+            <div class="md:col-span-4">
+              <label class="block text-xs font-medium mb-1">Take Profit Price (optional)</label>
+              <input type="number" step="0.01" id="tp_price" placeholder="Leave empty for no TP" class="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm"/>
             </div>
           </div>
 
-          <div class="flex gap-4">
-            <button onclick="executeTrade()" class="flex-1 py-5 btn-primary rounded-xl font-bold text-xl bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800">
-              <i class="fas fa-paper-plane mr-3"></i> Execute Trade
+          <div class="flex gap-3">
+            <button onclick="executeTrade('LONG')" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 flex items-center justify-center gap-2">
+              <i class="fas fa-arrow-up"></i><span>Long</span>
+            </button>
+            <button onclick="executeTrade('SHORT')" class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 flex items-center justify-center gap-2">
+              <i class="fas fa-arrow-down"></i><span>Short</span>
             </button>
           </div>
 
@@ -107,7 +107,7 @@
     </div>
 
     <!-- Footer -->
-    <div class="text-center mt-12 opacity-60 text-sm">
+    <div class="text-center mt-6 opacity-60 text-xs md:text-sm">
       <p>Hyperliquid Sentinel Manual Dashboard • <span id="clock"></span></p>
       <!--
       To launch backend:
@@ -148,20 +148,12 @@
       }, 3000);
     }
 
-    function setDirection(dir) {
-      selectedDirection = dir;
-      document.getElementById("btn-long").classList.toggle("signal-long", dir === "LONG");
-      document.getElementById("btn-long").classList.toggle("bg-white/10", dir !== "LONG");
-      document.getElementById("btn-short").classList.toggle("signal-short", dir === "SHORT");
-      document.getElementById("btn-short").classList.toggle("bg-white/10", dir !== "SHORT");
-      document.getElementById("btn-long").classList.toggle("text-white", dir === "LONG");
-      document.getElementById("btn-short").classList.toggle("text-white", dir === "SHORT");
-    }
-
-    async function executeTrade(counter = false) {
+    async function executeTrade(direction, counter = false) {
+      // Fallback to currently selectedDirection if direction not provided
+      const finalDirection = direction || selectedDirection;
       const payload = {
         pair: document.getElementById("pair").value,
-        direction: selectedDirection,
+        direction: finalDirection,
         leverage: parseFloat(document.getElementById("leverage").value),
         trade_size_usd: parseFloat(document.getElementById("size_usd").value),
         profit_take: document.getElementById("tp_price").value ? parseFloat(document.getElementById("tp_price").value) : null,
@@ -169,16 +161,39 @@
       };
       try {
         const res = await axios.post(`${API_BASE}/trade`, payload);
-        
         if (res.data.status === 'filled') {
           showToast(`Trade executed successfully! Size: ${res.data.detail.size}`);
         } else {
           showToast(`Trade status: ${res.data.status}. ${res.data.detail?.detail || ''}`, true);
         }
-        fetchStatus(); // Refresh status after trade
+        fetchStatus();
       } catch (err) {
         const errorMessage = err.response?.data?.detail || err.message;
         showToast(`Trade failed: ${errorMessage}`, true);
+      }
+    }
+
+    async function cancelOpenOrders() {
+      const pair = document.getElementById("pair").value;
+      try {
+        const res = await axios.post(`${API_BASE}/cancel_orders`, { pair });
+        showToast(res.data.message || "Open orders cancelled");
+        fetchStatus();
+      } catch (err) {
+        const errorMessage = err.response?.data?.detail || err.message;
+        showToast(`Cancel orders failed: ${errorMessage}`, true);
+      }
+    }
+
+    async function closePosition() {
+      const pair = document.getElementById("pair").value;
+      try {
+        const res = await axios.post(`${API_BASE}/close_position`, { pair });
+        showToast(res.data.message || "Position close submitted");
+        fetchStatus();
+      } catch (err) {
+        const errorMessage = err.response?.data?.detail || err.message;
+        showToast(`Close position failed: ${errorMessage}`, true);
       }
     }
 
