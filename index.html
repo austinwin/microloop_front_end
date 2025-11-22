@@ -110,7 +110,18 @@
               </div>
               <span id="mini-chart-label" class="text-[10px] uppercase tracking-wide"></span>
             </div>
-            <div class="glass rounded-xl p-2">
+            <div class="glass rounded-xl p-2 relative">
+              <!-- Chart Overlay Chips -->
+              <div id="chart-overlay" class="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none hidden z-10">
+                <div class="bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded text-[9px] border border-white/10 flex items-center justify-between gap-2 shadow-lg min-w-[60px]">
+                   <span class="opacity-60 uppercase tracking-wider text-[8px] font-semibold">Liq</span>
+                   <span id="overlay-liq" class="font-mono font-bold text-orange-400">--</span>
+                </div>
+                <div class="bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded text-[9px] border border-white/10 flex items-center justify-between gap-2 shadow-lg min-w-[60px]">
+                   <span class="opacity-60 uppercase tracking-wider text-[8px] font-semibold">PnL</span>
+                   <span id="overlay-pnl" class="font-mono font-bold">--</span>
+                </div>
+              </div>
               <canvas id="mini-chart" class="w-full" height="180"></canvas>
             </div>
           </div>
@@ -373,6 +384,26 @@
           <div class="text-xs opacity-70 uppercase tracking-wide">Orders</div>
           <div class="text-xl md:text-2xl font-bold opacity-50">-</div>
         `;
+      }
+
+      // Update Chart Overlay
+      const overlayEl = document.getElementById('chart-overlay');
+      const liqEl = document.getElementById('overlay-liq');
+      const pnlEl = document.getElementById('overlay-pnl');
+
+      if (data.open_position) {
+        const pos = data.open_position;
+        const liq = pos.liquidationPx ? parseFloat(pos.liquidationPx) : null;
+        const pnl = parseFloat(pos.unrealizedPnl);
+        
+        if (overlayEl) overlayEl.classList.remove('hidden');
+        if (liqEl) liqEl.textContent = liq ? `$${liq.toFixed(2)}` : 'N/A';
+        if (pnlEl) {
+            pnlEl.textContent = (pnl >= 0 ? '+' : '') + `$${pnl.toFixed(2)}`;
+            pnlEl.className = `font-mono font-bold ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`;
+        }
+      } else {
+        if (overlayEl) overlayEl.classList.add('hidden');
       }
     }
 
