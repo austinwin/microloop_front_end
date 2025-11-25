@@ -39,6 +39,15 @@
       opacity: 1;
     }
     
+    /* Settings Modal */
+    #settings-modal {
+      transition: opacity 0.3s ease-in-out;
+      opacity: 0;
+    }
+    #settings-modal.show {
+      opacity: 1;
+    }
+
     /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
@@ -102,6 +111,31 @@
             Execute Trade
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center hidden" onclick="closeSettingsModal(event)">
+    <div class="glass p-6 rounded-2xl max-w-sm w-full mx-4 shadow-2xl border border-violet-500/30 relative" onclick="event.stopPropagation()">
+      <button onclick="closeSettingsModal()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <i class="fas fa-cog text-violet-400"></i> App Settings
+      </h2>
+      
+      <div class="mb-6">
+        <label class="block text-xs font-bold uppercase tracking-wide mb-2 opacity-70">AI Persona Prompts</label>
+        <div class="space-y-2" id="persona-options-container">
+           <!-- Options injected via JS -->
+           <div class="animate-pulse h-10 bg-white/10 rounded-lg"></div>
+        </div>
+        <p class="text-[10px] opacity-50 mt-2">Select the personality set used for AI analysis across the app.</p>
+      </div>
+
+      <button onclick="saveSettings()" id="btn-save-settings" class="w-full py-3 btn-primary rounded-xl font-bold bg-violet-600 hover:bg-violet-700">
+        Save Changes
+      </button>
     </div>
   </div>
 
@@ -303,6 +337,16 @@
     </div>
   </div>
 
+  <!-- Floating Settings Button -->
+  <div class="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2">
+    <span id="persona-badge" class="text-[10px] font-bold uppercase tracking-wider bg-black/80 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10 text-violet-300 shadow-lg transition-opacity opacity-0">
+      --
+    </span>
+    <button onclick="openSettingsModal()" class="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-600/30 flex items-center justify-center transition-transform hover:scale-110 group">
+      <i class="fas fa-cog text-white text-lg group-hover:rotate-90 transition-transform duration-500"></i>
+    </button>
+  </div>
+
   <script>
     // Removed const API_BASE. Using dynamic getter.
     function getApiBase() {
@@ -399,6 +443,7 @@
         fetchMiniChart();
         fetchHistory();
         fetchAiLogs();
+        fetchSettings(); // Fetch settings on login
       } else {
         input.classList.add('border-red-500');
       }
@@ -472,6 +517,7 @@
             const timeframe = signal.timeframe_bias || 'N/A';
             const tp_price = signal.take_profit !== undefined ? signal.take_profit : 'N/A';
             const described_personals = signal.described_personals || 'No persona description provided.';
+            const prompt_used = signal.prompt_used || 'N/A';
             return `
             <div class="glass rounded-xl p-4 border ${bgClass} hover:bg-white/5 transition-colors">
                 <div class="flex justify-between items-start mb-2">
@@ -502,7 +548,10 @@
                     </div>
                     <div class="px-2 py-1 rounded bg-black/20 border border-white/5">
                         TP: <span class="font-bold text-white">${tp_price}</span>
-                    </div>                    
+                    </div>  
+                    <div class="px-2 py-1 rounded bg-black/20 border border-white/5">
+                        Prompt: <span class="font-bold text-white">${prompt_used}</span>
+                    </div>                  
                 </div>
             </div>
             `;
@@ -1257,6 +1306,7 @@
         fetchHistory();
         fetchAiLogs();
         fetchBotStatus();
+        fetchSettings(); // Fetch settings on load
     }
 
     // --- Bot Logic ---
@@ -1332,6 +1382,88 @@
         } finally {
             btn.disabled = false;
             btn.textContent = originalText; // Will be updated by fetchBotStatus shortly
+        }
+    }
+
+    // --- Settings Logic ---
+    let currentPersonaSet = "detailed";
+
+    async function fetchSettings() {
+        try {
+            const res = await axios.get(`${getApiBase()}/settings/persona`);
+            currentPersonaSet = res.data.current;
+            renderSettingsOptions(res.data.options, res.data.current);
+            updatePersonaBadge(res.data.current);
+        } catch (err) {
+            console.error("Failed to fetch settings:", err);
+        }
+    }
+
+    function updatePersonaBadge(name) {
+        const badge = document.getElementById('persona-badge');
+        if(badge) {
+            const displayName = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            badge.textContent = "AI Theme: " +displayName;
+            badge.classList.remove('opacity-0');
+        }
+    }
+
+    function renderSettingsOptions(options, current) {
+        const container = document.getElementById('persona-options-container');
+        container.innerHTML = options.map(opt => {
+            // Handle both string options (legacy) and object options (new)
+            const id = typeof opt === 'string' ? opt : opt.id;
+            const name = typeof opt === 'string' ? opt.charAt(0).toUpperCase() + opt.slice(1) : opt.name;
+            const desc = typeof opt === 'string' ? '' : opt.description;
+            
+            const isSelected = id === current;
+            
+            return `
+            <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${isSelected ? 'bg-violet-600/20 border-violet-500' : 'bg-white/5 border-white/10 hover:bg-white/10'}">
+                <input type="radio" name="persona_set" value="${id}" ${isSelected ? 'checked' : ''} class="mt-1 accent-violet-500">
+                <div>
+                    <div class="font-bold text-sm ${isSelected ? 'text-violet-300' : 'text-white'}">${name}</div>
+                    <div class="text-[10px] opacity-60">${desc}</div>
+                </div>
+                       </label>
+            `;
+        }).join('');
+    }
+
+    function openSettingsModal() {
+        fetchSettings(); // Refresh before showing
+        const modal = document.getElementById('settings-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.add('show'), 10);
+    }
+
+    function closeSettingsModal(event) {
+        if (event && event.target !== event.currentTarget) return;
+        const modal = document.getElementById('settings-modal');
+        modal.classList.remove('show');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    async function saveSettings() {
+        const btn = document.getElementById('btn-save-settings');
+        const originalText = btn.textContent;
+        btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
+        btn.disabled = true;
+
+        const selected = document.querySelector('input[name="persona_set"]:checked').value;
+
+        try {
+            await axios.post(`${getApiBase()}/settings/persona`, { persona_set: selected });
+            showToast("Settings saved successfully");
+            closeSettingsModal();
+            currentPersonaSet = selected;
+            updatePersonaBadge(selected);
+        } catch (err) {
+            showToast("Failed to save settings", true);
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
         }
     }
   </script>
