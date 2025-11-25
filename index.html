@@ -470,6 +470,7 @@
             const rationale = signal.rationale_short || 'No rationale provided.';
             const strategy = signal.strategy !== undefined ? signal.strategy: 'None';
             const timeframe = signal.timeframe_bias || 'N/A';
+            const tp_price = signal.take_profit !== undefined ? signal.take_profit : 'N/A';
             const described_personals = signal.described_personals || 'No persona description provided.';
             return `
             <div class="glass rounded-xl p-4 border ${bgClass} hover:bg-white/5 transition-colors">
@@ -499,6 +500,9 @@
                     <div class="px-2 py-1 rounded bg-black/20 border border-white/5">
                         TF: <span class="font-bold text-white">${timeframe}</span>
                     </div>
+                    <div class="px-2 py-1 rounded bg-black/20 border border-white/5">
+                        TP: <span class="font-bold text-white">${tp_price}</span>
+                    </div>                    
                 </div>
             </div>
             `;
