@@ -139,6 +139,47 @@
     </div>
   </div>
 
+  <!-- Pair Manager Modal -->
+  <div id="pair-manager-modal" class="fixed inset-0 z-[80] bg-black/90 backdrop-blur-sm flex items-center justify-center hidden" onclick="closePairManager(event)">
+    <div class="glass p-6 rounded-2xl max-w-2xl w-full mx-4 shadow-2xl border border-violet-500/30 relative flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
+      <button onclick="closePairManager()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <i class="fas fa-list text-violet-400"></i> Pair Manager
+      </h2>
+      
+      <div class="flex gap-2 mb-4">
+        <div class="relative flex-1">
+            <i class="fas fa-search absolute left-3 top-3 text-white/30"></i>
+            <input type="text" id="pair-search" placeholder="Search pairs (e.g. SOL, BTC)..." class="w-full pl-10 pr-4 py-2 rounded-lg bg-white/5 border border-white/10 focus:border-violet-500 focus:outline-none text-sm" oninput="filterPairTable()">
+        </div>
+        <button onclick="refreshPairData()" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10" title="Refresh Data">
+            <i class="fas fa-sync-alt text-white/70"></i>
+        </button>
+      </div>
+
+      <!-- Table Header -->
+      <div class="grid grid-cols-12 gap-2 px-2 py-2 text-[10px] font-bold uppercase tracking-wider opacity-60 border-b border-white/10">
+        <div class="col-span-3 cursor-pointer hover:text-white" onclick="sortPairs('name')">Pair <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-2 text-right cursor-pointer hover:text-white" onclick="sortPairs('price')">Price <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-2 text-right cursor-pointer hover:text-white" onclick="sortPairs('change')">24h % <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-3 text-right cursor-pointer hover:text-white" onclick="sortPairs('volume')">Vol (24h) <i class="fas fa-sort ml-1"></i></div>
+        <div class="col-span-2 text-center">Action</div>
+      </div>
+
+      <!-- Table Body -->
+      <div id="pair-table-body" class="overflow-y-auto flex-1 pr-1 space-y-1 mt-1">
+         <div class="text-center py-8 opacity-50"><i class="fas fa-circle-notch spin"></i> Loading pairs...</div>
+      </div>
+      
+      <div class="mt-4 pt-4 border-t border-white/10 flex justify-between items-center">
+          <span class="text-xs opacity-50" id="pair-count-label">0 pairs selected</span>
+          <button onclick="closePairManager()" class="px-6 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 font-bold text-sm">Done</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 bg-green-600 text-white py-2 px-4 rounded-lg shadow-lg hidden">
     <p id="toast-message"></p>
@@ -227,16 +268,14 @@
             <!-- Pair -->
             <div class="col-span-12">
               <label class="block text-[10px] font-bold uppercase tracking-wide mb-1 opacity-70">Pair</label>
-              <select id="pair" class="w-full px-2 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm">
-                <option value="SOL/USD">SOL/USD (Max 20x)</option>
-                <option value="BTC/USD">BTC/USD (Max 40x)</option>
-                <option value="ETH/USD">ETH/USD (Max 20x)</option>
-                <option value="XRP/USD">XRP/USD (Max 20x)</option>
-                <option value="HYPE/USD">HYPE/USD (Max 10x)</option>
-                <option value="ZEC/USD">ZEC/USD (Max 10x)</option>
-                <option value="PUMP/USD">PUMP/USD (Max 10x)</option>
-                <option value="BCH/USD">BCH/USD (Max 10x)</option>
-              </select>
+              <div class="flex gap-2">
+                  <select id="pair" class="w-full px-2 py-2 rounded-lg bg-white/10 border border-white/15 focus:border-violet-500 focus:outline-none text-sm">
+                    <!-- Options populated via JS -->
+                  </select>
+                  <button onclick="openPairManager()" class="px-3 py-2 rounded-lg bg-white/10 border border-white/15 hover:bg-white/20 transition-colors" title="Manage Pairs">
+                      <i class="fas fa-sliders-h text-violet-300"></i>
+                  </button>
+              </div>
             </div>
 
             <!-- Leverage -->
@@ -491,6 +530,134 @@
     
     // Store persona preferences per pair locally
     let personaPreferences = {}; 
+
+    // --- Pair Manager Logic ---
+    let allPairsData = [];
+    let activePairs = JSON.parse(localStorage.getItem('MICROHYPER_ACTIVE_PAIRS')) || ["SOL", "BTC", "ETH", "XRP", "HYPE", "ZEC", "PUMP", "BCH"];
+    let currentSort = { field: 'volume', dir: 'desc' };
+
+    function initPairs() {
+        updatePairDropdown();
+    }
+
+    function updatePairDropdown() {
+        const select = document.getElementById('pair');
+        const currentVal = select.value;
+        
+        select.innerHTML = activePairs.map(p => {
+            // We don't have max leverage here easily without fetching, so we just show symbol
+            return `<option value="${p}/USD">${p}/USD</option>`;
+        }).join('');
+        
+        // Try to restore selection, or default to first
+        if (activePairs.map(p => `${p}/USD`).includes(currentVal)) {
+            select.value = currentVal;
+        } else if (activePairs.length > 0) {
+            select.value = `${activePairs[0]}/USD`;
+            // Trigger change to update UI
+            const event = new Event('change');
+            select.dispatchEvent(event);
+        }
+    }
+
+    async function openPairManager() {
+        const modal = document.getElementById('pair-manager-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.add('show'), 10);
+        
+        if (allPairsData.length === 0) {
+            await refreshPairData();
+        } else {
+            renderPairTable();
+        }
+    }
+
+    function closePairManager(event) {
+        if (event && event.target !== event.currentTarget) return;
+        const modal = document.getElementById('pair-manager-modal');
+        modal.classList.remove('show');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+        updatePairDropdown(); // Refresh dropdown on close
+    }
+
+    async function refreshPairData() {
+        const container = document.getElementById('pair-table-body');
+        container.innerHTML = '<div class="text-center py-8 opacity-50"><i class="fas fa-circle-notch spin"></i> Fetching market data...</div>';
+        
+        try {
+            const res = await axios.get(`${getApiBase()}/pairs`);
+            allPairsData = res.data;
+            renderPairTable();
+        } catch (err) {
+            container.innerHTML = `<div class="text-center py-8 text-red-400">Failed to load pairs: ${err.message}</div>`;
+        }
+    }
+
+    function sortPairs(field) {
+        if (currentSort.field === field) {
+            currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort.field = field;
+            currentSort.dir = 'desc'; // Default desc for numbers
+            if (field === 'name') currentSort.dir = 'asc';
+        }
+        renderPairTable();
+    }
+
+    function filterPairTable() {
+        renderPairTable();
+    }
+
+    function renderPairTable() {
+        const search = document.getElementById('pair-search').value.toLowerCase();
+        const container = document.getElementById('pair-table-body');
+        
+        let filtered = allPairsData.filter(p => p.name.toLowerCase().includes(search));
+        
+        // Sort
+        filtered.sort((a, b) => {
+            let valA = a[currentSort.field === 'change' ? 'change_24h' : currentSort.field];
+            let valB = b[currentSort.field === 'change' ? 'change_24h' : currentSort.field];
+            
+            if (currentSort.dir === 'asc') return valA > valB ? 1 : -1;
+            return valA < valB ? 1 : -1;
+        });
+
+        document.getElementById('pair-count-label').textContent = `${activePairs.length} pairs selected`;
+
+        container.innerHTML = filtered.map(p => {
+            const isActive = activePairs.includes(p.name);
+            const changeColor = p.change_24h >= 0 ? 'text-green-400' : 'text-red-400';
+            const volStr = p.volume > 1000000 ? `$${(p.volume/1000000).toFixed(1)}M` : `$${(p.volume/1000).toFixed(0)}K`;
+            
+            return `
+            <div class="grid grid-cols-12 gap-2 px-2 py-2 items-center hover:bg-white/5 rounded border border-transparent hover:border-white/5 transition-colors">
+                <div class="col-span-3 font-bold flex flex-col">
+                    <span>${p.name}</span>
+                    <span class="text-[9px] opacity-40 font-normal">Max ${p.max_leverage}x</span>
+                </div>
+                <div class="col-span-2 text-right font-mono text-xs">$${formatPrice(p.price)}</div>
+                <div class="col-span-2 text-right font-mono text-xs ${changeColor}">${p.change_24h > 0 ? '+' : ''}${p.change_24h.toFixed(2)}%</div>
+                <div class="col-span-3 text-right font-mono text-xs opacity-70">${volStr}</div>
+                <div class="col-span-2 text-center">
+                    <button onclick="togglePair('${p.name}')" class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide transition-all ${isActive ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30' : 'bg-green-500/20 text-green-300 hover:bg-green-500/30'}">
+                        ${isActive ? 'Remove' : 'Add'}
+                    </button>
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
+
+    function togglePair(symbol) {
+        if (activePairs.includes(symbol)) {
+            activePairs = activePairs.filter(p => p !== symbol);
+        } else {
+            activePairs.push(symbol);
+        }
+        localStorage.setItem('MICROHYPER_ACTIVE_PAIRS', JSON.stringify(activePairs));
+        renderPairTable();
+    }
 
     // --- Counter Trade Logic ---
     function toggleCounterTrade() {
@@ -1480,6 +1647,7 @@
     if (!getStoredKey()) {
         showApiKeyModal();
     } else {
+        initPairs(); // Initialize pairs
         fetchStatus();
         fetchMiniChart();
         fetchHistory();
