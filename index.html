@@ -825,17 +825,17 @@
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Closed</span>
-                <span class="font-mono font-bold text-sm ${closedPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${closedPnl >= 0 ? '+' : ''}$${formatPrice(closedPnl)}</span>
+                <span class="font-mono font-bold text-sm ${closedPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${closedPnl >= 0 ? '+' : ''}$${formatPrice(closedPnl.toFixed(2))}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Open</span>
-                <span class="font-mono font-bold text-sm ${openPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${openPnl >= 0 ? '+' : ''}$${formatPrice(openPnl)}</span>
+                <span class="font-mono font-bold text-sm ${openPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${openPnl >= 0 ? '+' : ''}$${formatPrice(openPnl.toFixed(2))}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Net Profit</span>
-                <span class="font-mono font-bold text-sm ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">${totalProfit >= 0 ? '+' : ''}$${formatPrice(totalProfit)}</span>
+                <span class="font-mono font-bold text-sm ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">${totalProfit >= 0 ? '+' : ''}$${formatPrice(totalProfit.toFixed(2))}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col">
