@@ -836,27 +836,27 @@
         const totalProfit = closedPnl + openPnl;
 
         statsContainer.innerHTML = `
-            <div class="flex flex-col">
+            <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Active</span>
                 <span class="font-mono font-bold text-sm text-white">${totalRunning}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
-            <div class="flex flex-col">
+            <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Closed</span>
                 <span class="font-mono font-bold text-sm ${closedPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${closedPnl >= 0 ? '+' : ''}$${formatPrice(closedPnl.toFixed(2))}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
-            <div class="flex flex-col">
+            <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Open</span>
                 <span class="font-mono font-bold text-sm ${openPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${openPnl >= 0 ? '+' : ''}$${formatPrice(openPnl.toFixed(2))}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
-            <div class="flex flex-col">
+            <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Net Profit</span>
                 <span class="font-mono font-bold text-sm ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">${totalProfit >= 0 ? '+' : ''}$${formatPrice(totalProfit.toFixed(2))}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
-            <div class="flex flex-col">
+            <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">L/S</span>
                 <span class="font-mono font-bold text-sm"><span class="text-green-400">${totalLongs}</span>/<span class="text-red-400">${totalShorts}</span></span>
             </div>
@@ -1811,11 +1811,11 @@
       const marginEl = document.getElementById('status-available-margin');
       const positionEl = document.getElementById('status-open-position');
       const ordersEl = document.getElementById('status-open-orders');
-
+      const pair = data.pair || (document.getElementById("pair")?.value?.split("/")[0] || "");
       // Current Price
       const price = parseFloat(data.current_price);
       priceEl.innerHTML = `
-        <div class="text-xs opacity-70 uppercase tracking-wide">Price</div>
+        <div class="text-xs opacity-70 uppercase tracking-wide"> ${pair ? `${pair} Price` : "Price"}</div>
         <div class="text-xl md:text-2xl font-bold">${price ? `$${formatPrice(price)}` : 'N/A'}</div>
       `;
 
