@@ -6,6 +6,9 @@
   <title>Microhyper</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <!-- Chart.js & Date Adapter -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
     body { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
@@ -45,6 +48,15 @@
       opacity: 0;
     }
     #settings-modal.show {
+      opacity: 1;
+    }
+
+    /* Battle Modal */
+    #battle-modal {
+      transition: opacity 0.3s ease-in-out;
+      opacity: 0;
+    }
+    #battle-modal.show {
       opacity: 1;
     }
 
@@ -235,6 +247,75 @@
       </div>
     </div>
   </div>
+
+  <!-- Battle Manager Modal -->
+  <div id="battle-modal" class="fixed inset-0 z-[85] bg-black/85 backdrop-blur-sm flex items-center justify-center hidden p-4" onclick="closeBattleManager(event)">
+    <div class="glass p-6 rounded-2xl w-full max-w-3xl shadow-2xl border border-violet-500/30 relative max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <button onclick="closeBattleManager()" class="absolute top-4 right-4 text-white/50 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <i class="fas fa-trophy text-amber-400"></i> Battle Manager
+      </h2>
+
+      <!-- Create Session Section -->
+      <div class="mb-6 border-b border-white/10 pb-4">
+          <label class="text-xs opacity-60 uppercase tracking-wide font-bold mb-2 block">Create New Session</label>
+          <div class="flex gap-2">
+              <input id="battle-new-session-name" placeholder="Session Name" class="flex-1 px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-amber-500" />
+              <button onclick="createSession()" class="px-4 py-2 rounded-lg bg-amber-500/80 hover:bg-amber-600 font-bold transition-colors">Create</button>
+          </div>
+      </div>
+
+      <!-- Manage Selected Session Section -->
+      <div id="battle-manage-area" class="mb-6 hidden bg-white/5 p-4 rounded-xl border border-white/10">
+          <div class="flex justify-between items-center mb-3">
+              <label class="text-sm font-bold block">Manage Session: <span id="battle-selected-session-label" class="text-amber-400">--</span></label>
+              <button onclick="deselectSession()" class="text-xs opacity-50 hover:opacity-100 bg-white/10 px-2 py-1 rounded">Close</button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <select id="battle-add-pair-select" class="col-span-1 px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-amber-500 text-xs">
+                  <option value="">Select Bot...</option>
+                  <!-- Populated dynamically -->
+              </select>
+              <input id="battle-add-balance" type="number" placeholder="Initial Fund $" value="1" class="col-span-1 px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white focus:outline-none focus:border-amber-500 text-xs" />
+              <button onclick="addParticipant()" class="col-span-1 px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 font-bold transition-colors text-xs">Add Bot to Session</button>
+          </div>
+      </div>
+
+      <div class="mb-4 flex gap-3 items-center justify-between border-b border-white/10 pb-2">
+        <div class="text-xs opacity-60 uppercase tracking-wide font-bold">Active Sessions</div>
+        <button onclick="fetchBattles()" class="px-2 py-1 rounded bg-white/5 border border-white/10 text-xs hover:bg-white/10 transition-colors"><i class="fas fa-sync-alt"></i> Refresh</button>
+      </div>
+
+      <div id="battle-list" class="space-y-3 mb-6 max-h-[320px] overflow-y-auto pr-1">
+        <div class="glass rounded-xl p-4 text-center opacity-50">Loading sessions...</div>
+      </div>
+
+      <div id="battle-controls" class="flex flex-wrap gap-3 items-center bg-white/5 p-3 rounded-xl border border-white/10">
+        <button id="btn-battle-start" onclick="controlBattle('start')" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 font-bold transition-colors flex-1 md:flex-none">Start</button>
+        <button id="btn-battle-stop" onclick="controlBattle('stop')" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 font-bold transition-colors flex-1 md:flex-none">Stop</button>
+        <button id="btn-battle-delete" onclick="deleteBattle()" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 font-bold transition-colors border border-white/10 flex-1 md:flex-none">Delete</button>
+        
+        <div class="w-full md:w-auto md:ml-auto flex items-center gap-2">
+            <div class="text-xs opacity-60 uppercase tracking-wide">Chart</div>
+            <select id="battle-chart-session" onchange="viewBattleChart()" class="bg-black/40 border border-white/10 rounded px-2 py-2 text-xs focus:outline-none focus:border-amber-500 flex-1">
+            <!-- sessions populated dynamically -->
+            </select>
+          </div>
+      </div>
+
+      <div class="mt-4 glass p-2 rounded-xl">
+        <canvas id="battle-chart" height="200" class="w-full"></canvas>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Floating Battle Button -->
+  <button onclick="openBattleManager()" class="fixed bottom-6 right-24 z-40 w-14 h-14 rounded-full bg-amber-500 hover:bg-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.4)] flex items-center justify-center transition-all hover:scale-110 group border border-white/10">
+    <i class="fas fa-trophy text-white text-xl transition-transform duration-500"></i>
+  </button>
 
   <!-- Floating Settings Button -->
   <button onclick="openSystemSettings()" class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-500 shadow-[0_0_15px_rgba(124,58,237,0.5)] flex items-center justify-center transition-all hover:scale-110 group border border-white/10">
@@ -1783,11 +1864,9 @@
 
     async function closePosition(targetPair = null) {
       const btn = !targetPair ? document.getElementById('btn-close-position') : null;
-      const originalContent = btn ? btn.innerHTML : '';
-      if(btn) {
-          btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
-          setLoading(true);
-      }
+      const originalContent = btn.innerHTML;
+      btn.innerHTML = `<i class="fas fa-circle-notch spin"></i>`;
+      setLoading(true);
 
       const pair = targetPair || document.getElementById("pair").value;
       try {
@@ -2330,15 +2409,6 @@
         poll();
     }
     
-    // Initial load
-    if (!getStoredKey()) {
-        showApiKeyModal();
-    } else {
-        initPairs(); // Initialize pairs
-        startPolling(); // Start polling loop
-        fetchSettings(); // Fetch settings on load
-    }
-
     // --- Bot Logic ---
     let isBotRunning = false;
 
@@ -2634,6 +2704,376 @@
             btn.disabled = false;
             btn.textContent = originalText;
         }
+    }
+
+    // --- Battle Feature JS ---
+    let currentBattleSession = null;
+    let battleChartInstance = null;
+    let battleChartTimer = null;
+
+    async function openBattleManager() {
+      const modal = document.getElementById('battle-modal');
+      modal.classList.remove('hidden');
+      setTimeout(() => modal.classList.add('show'), 10);
+      fetchBattles();
+      await populateBattlePairs();
+      
+      // Start chart refresh loop
+      viewBattleChart();
+      if (battleChartTimer) clearInterval(battleChartTimer);
+      battleChartTimer = setInterval(viewBattleChart, 60000); // 1 minute refresh
+    }
+
+    function closeBattleManager(event) {
+      if (event && event.target !== event.currentTarget) return;
+      const modal = document.getElementById('battle-modal');
+      modal.classList.remove('show');
+      setTimeout(() => modal.classList.add('hidden'), 300);
+      
+      // Stop chart refresh
+      if (battleChartTimer) clearInterval(battleChartTimer);
+      battleChartTimer = null;
+    }
+
+    async function populateBattlePairs() {
+        const select = document.getElementById('battle-add-pair-select');
+        // Use activePairs from global scope to ensure defaults are present
+        const pairs = activePairs || [];
+        
+        let runningBotsMap = {};
+        try {
+            const res = await axios.get(`${getApiBase()}/bot/list`);
+            const bots = res.data || [];
+            bots.forEach(b => {
+                if (b.running) {
+                    runningBotsMap[b.pair] = b;
+                }
+            });
+        } catch (err) {
+            console.error("Failed to fetch running bots for dropdown:", err);
+        }
+
+        select.innerHTML = '<option value="">Select Bot...</option>' + 
+            pairs.map(p => {
+                const pairStr = `${p}/USD`;
+                const bot = runningBotsMap[pairStr];
+                let label = pairStr;
+                if (bot) {
+                    const persona = bot.persona_set.charAt(0).toUpperCase() + bot.persona_set.slice(1).replace(/_/g, ' ');
+                    label = `🤖 ${pairStr} [${persona}]`;
+                }
+                return `<option value="${pairStr}">${label}</option>`;
+            }).join('');
+    }
+
+    async function fetchBattles() {
+      const container = document.getElementById('battle-list');
+      const select = document.getElementById('battle-chart-session');
+      
+      try {
+        const res = await axios.get(`${getApiBase()}/battle/list`);
+        const sessions = res.data || [];
+        
+        if (sessions.length === 0) {
+          container.innerHTML = '<div class="glass rounded-xl p-4 text-center opacity-50">No sessions found. Create one above.</div>';
+          select.innerHTML = '<option value="">No sessions</option>';
+          currentBattleSession = null;
+          document.getElementById('battle-manage-area').classList.add('hidden');
+          return;
+        }
+
+        // Auto-select first session if none selected
+        if (!currentBattleSession) {
+            currentBattleSession = sessions[0].name;
+            document.getElementById('battle-selected-session-label').textContent = currentBattleSession;
+            document.getElementById('battle-manage-area').classList.remove('hidden');
+            viewBattleChart();
+        }
+        
+        // Populate list
+        container.innerHTML = sessions.map(s => {
+          const statusColor = s.status === 'active' ? 'text-green-400' : 'text-white/50';
+          const isSelected = currentBattleSession === s.name;
+          const borderClass = isSelected ? 'border-amber-500' : (s.status === 'active' ? 'border-green-500' : 'border-white/10');
+          
+          const partsHtml = (s.participants || []).map(p => `
+            <span class="inline-flex items-center bg-white/5 px-1.5 py-0.5 rounded border border-white/5 mr-1 mb-1 text-[10px]">
+                ${p.pair} <span class="opacity-50 ml-1">$${p.initial_balance}</span>
+                <button onclick="removeParticipant('${s.name}', '${p.pair}', event)" class="ml-1.5 text-red-400 hover:text-red-300"><i class="fas fa-times"></i></button>
+            </span>
+          `).join('');
+          
+          return `
+            <div class="glass rounded-xl p-4 flex flex-col md:flex-row justify-between items-start gap-3 hover:bg-white/5 transition-colors border-l-4 ${borderClass}" onclick="selectBattleSession('${s.name}')">
+              <div class="flex-1 cursor-pointer">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="font-bold text-sm">${s.name}</span>
+                  <span class="text-[10px] font-bold uppercase tracking-wide ${statusColor}">${s.status}</span>
+                </div>
+                <div class="flex flex-wrap">
+                  ${partsHtml || '<span class="text-[10px] opacity-40">No bots added</span>'}
+                </div>
+              </div>
+              <div class="flex gap-2 w-full md:w-auto" onclick="event.stopPropagation()">
+                <button onclick="selectBattleSession('${s.name}')" class="px-3 py-1.5 rounded bg-white/10 hover:bg-white/20 text-xs font-bold border border-white/10">Manage</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        // Populate select for chart
+        select.innerHTML = `<option value="">Select session for Chart</option>` + sessions.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        select.value = currentBattleSession;
+        
+      } catch (err) {
+        console.error("Failed to load battles:", err);
+        container.innerHTML = '<div class="text-red-400 p-4 text-center">Failed to load sessions.</div>';
+      }
+    }
+
+    function selectBattleSession(name) {
+      currentBattleSession = name;
+      document.getElementById('battle-selected-session-label').textContent = name;
+      document.getElementById('battle-manage-area').classList.remove('hidden');
+      
+      // Also select in chart dropdown
+      const select = document.getElementById('battle-chart-session');
+      select.value = name;
+      viewBattleChart();
+      
+      // Re-render list to show selection highlight
+      fetchBattles();
+    }
+
+    function deselectSession() {
+        currentBattleSession = null;
+        document.getElementById('battle-manage-area').classList.add('hidden');
+        fetchBattles();
+    }
+
+    async function createSession() {
+        const name = document.getElementById('battle-new-session-name').value.trim();
+        if (!name) return showToast("Enter session name", true);
+        
+        try {
+            await axios.post(`${getApiBase()}/battle/create`, { session_name: name });
+            showToast(`Session "${name}" created`);
+            document.getElementById('battle-new-session-name').value = '';
+            fetchBattles();
+        } catch (err) {
+            console.error("Failed to create session:", err);
+            showToast("Failed to create session", true);
+        }
+    }
+
+    async function addParticipant() {
+      if (!currentBattleSession) return showToast("Select a session first", true);
+      
+      const pair = document.getElementById('battle-add-pair-select').value;
+      const balance = parseFloat(document.getElementById('battle-add-balance').value) || 1;
+      
+      if (!pair) return showToast("Select a bot/pair", true);
+      
+      try {
+        const payload = { session_name: currentBattleSession, pair: pair, initial_balance: balance };
+        await axios.post(`${getApiBase()}/battle/add`, payload);
+        showToast(`Added ${pair} to ${currentBattleSession}`);
+        fetchBattles();
+      } catch (err) {
+        console.error("Failed to add to battle:", err);
+        showToast("Failed to add participant", true);
+      }
+    }
+
+    async function removeParticipant(session, pair, event) {
+        if (event) event.stopPropagation();
+        if (!confirm(`Remove ${pair} from ${session}?`)) return;
+        
+        try {
+            await axios.post(`${getApiBase()}/battle/remove_participant`, { session_name: session, pair: pair });
+            showToast(`Removed ${pair}`);
+            fetchBattles();
+        } catch (err) {
+            console.error("Failed to remove participant:", err);
+            showToast("Failed to remove participant", true);
+        }
+    }
+
+    async function controlBattle(action, sessionName = null) {
+      const session = sessionName || currentBattleSession;
+      console.log(`[DEBUG] controlBattle: action=${action}, session=${session}`);
+      if (!session) return showToast("Select a session", true);
+      
+      const btnId = action === 'start' ? 'btn-battle-start' : 'btn-battle-stop';
+      setLoading(true, btnId);
+
+      try {
+        console.log(`[DEBUG] Sending POST to /battle/control`);
+        const res = await axios.post(`${getApiBase()}/battle/control`, { session_name: session, action });
+        console.log(`[DEBUG] controlBattle response:`, res.data);
+        showToast(`Session ${session} ${action}ed`);
+        fetchBattles();
+      } catch (err) {
+        console.error("[DEBUG] controlBattle error:", err);
+        showToast("Failed to control session", true);
+      } finally {
+        setLoading(false, btnId);
+      }
+    }
+
+    async function deleteBattle(name = null) {
+      const session = name || currentBattleSession;
+      console.log(`[DEBUG] deleteBattle: session=${session}`);
+      if (!session) return showToast("Select a session", true);
+      
+      if (!confirm(`Delete session "${session}"? This cannot be undone.`)) return;
+      
+      setLoading(true, 'btn-battle-delete');
+
+      try {
+        console.log(`[DEBUG] Sending POST to /battle/delete`);
+        const res = await axios.post(`${getApiBase()}/battle/delete`, { session_name: session });
+        console.log(`[DEBUG] deleteBattle response:`, res.data);
+        showToast(`Deleted session ${session}`);
+        if (currentBattleSession === session) deselectSession();
+        fetchBattles();
+      } catch (err) {
+        console.error("[DEBUG] deleteBattle error:", err);
+        showToast("Failed to delete session", true);
+      } finally {
+        setLoading(false, 'btn-battle-delete');
+      }
+    }
+
+    async function viewBattleChart() {
+      const session = document.getElementById('battle-chart-session').value;
+      
+      if (!session) {
+        if (battleChartInstance) {
+            battleChartInstance.destroy();
+            battleChartInstance = null;
+        }
+        return;
+      }
+      
+      try {
+        const res = await axios.get(`${getApiBase()}/battle/chart?session_name=${encodeURIComponent(session)}`);
+        renderBattleChart(res.data || {});
+      } catch (err) {
+        console.error("Failed to fetch chart:", err);
+        // Silent fail on auto-refresh
+      }
+    }
+
+    function renderBattleChart(data) {
+      const canvas = document.getElementById('battle-chart');
+      const ctx = canvas.getContext('2d');
+      
+      if (battleChartInstance) {
+        battleChartInstance.destroy();
+      }
+
+      const pairs = Object.keys(data);
+      const colors = ["#34D399", "#60A5FA", "#F97316", "#F43F5E", "#A78BFA", "#FACC15"];
+      
+      const datasets = pairs.map((p, i) => {
+          // Sort by time
+          const sorted = data[p].sort((a, b) => a.time - b.time);
+          return {
+              label: p,
+              data: sorted.map(d => ({x: d.time * 1000, y: d.equity})), // Chart.js expects ms for time
+              borderColor: colors[i % colors.length],
+              backgroundColor: colors[i % colors.length],
+              borderWidth: 2,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+              tension: 0.1
+          };
+      });
+
+      battleChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: { datasets },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: {
+                  mode: 'index',
+                  intersect: false,
+              },
+              plugins: {
+                  legend: {
+                      labels: { color: 'rgba(255, 255, 255, 0.7)', font: { size: 10 } }
+                  },
+                  tooltip: {
+                      mode: 'index',
+                      intersect: false,
+                      callbacks: {
+                          label: function(context) {
+                              let label = context.dataset.label || '';
+                              if (label) {
+                                  label += ': ';
+                              }
+                              if (context.parsed.y !== null) {
+                                  label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                              }
+                              return label;
+                          }
+                      }
+                  }
+              },
+              scales: {
+                  x: {
+                      type: 'time',
+                      time: {
+                          displayFormats: {
+                              minute: 'MMM d h:mm a',
+                              hour: 'MMM d h:mm a'
+                          },
+                          tooltipFormat: 'MMM d h:mm a'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      },
+                      ticks: {
+                          color: 'rgba(255, 255, 255, 0.5)',
+                          font: { size: 10 }
+                      }
+                  },
+                  y: {
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      },
+                      ticks: {
+                          color: 'rgba(255, 255, 255, 0.5)',
+                          font: { size: 10 },
+                          callback: function(value) {
+                              return '$' + value.toFixed(2);
+                          }
+                      }
+                  }
+              }
+          }
+      });
+    }
+
+    let _battle_poll = null;
+    function startBattlePolling() {
+      if (_battle_poll) clearInterval(_battle_poll);
+      _battle_poll = setInterval(() => {
+        if (getStoredKey()) fetchBattles();
+      }, 30000); // Poll every 30s
+    }
+
+    // Initial load - Moved to end to ensure all variables are initialized
+    if (!getStoredKey()) {
+        showApiKeyModal();
+    } else {
+        initPairs(); // Initialize pairs
+        startPolling(); // Start polling loop
+        fetchSettings(); // Fetch settings on load
+        fetchBattles(); // Fetch battle sessions
+        startBattlePolling(); // Start battle polling
     }
   </script>
 </body>
