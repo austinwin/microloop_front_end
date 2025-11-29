@@ -1031,27 +1031,27 @@
         statsContainer.innerHTML = `
             <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Active</span>
-                <span class="font-mono font-bold text-sm text-white">${totalRunning}</span>
+                <span class="font-mono font-bold text-[11px] text-white">${totalRunning}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Closed</span>
-                <span class="font-mono font-bold text-sm ${closedPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(closedPnl.toFixed(2), true)}</span>
+                <span class="font-mono font-bold text-[11px] ${closedPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(closedPnl.toFixed(2), true)}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Open</span>
-                <span class="font-mono font-bold text-sm ${openPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(openPnl.toFixed(2), true)}</span>
+                <span class="font-mono font-bold text-[11px] ${openPnl >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(openPnl.toFixed(2), true)}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">Net Profit</span>
-                <span class="font-mono font-bold text-sm ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(totalProfit.toFixed(2), true)}</span>
+                <span class="font-mono font-bold text-[11px] ${totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}">${formatUSD(totalProfit.toFixed(2), true)}</span>
             </div>
             <div class="w-px h-6 bg-white/10"></div>
             <div class="flex flex-col items-center">
                 <span class="text-[9px] uppercase tracking-wider opacity-50">L/S</span>
-                <span class="font-mono font-bold text-sm"><span class="text-green-400">${totalLongs}</span>/<span class="text-red-400">${totalShorts}</span></span>
+                <span class="font-mono font-bold text-[11px]"><span class="text-green-400">${totalLongs}</span>/<span class="text-red-400">${totalShorts}</span></span>
             </div>
         `;
 
