@@ -564,6 +564,7 @@
         </button>
       </div>
 
+      <div id="tab-content-wrapper">
       <!-- Tab Content: Trades -->
       <div id="tab-content-trades">
         <div class="flex flex-col gap-4 mb-4">
@@ -641,6 +642,7 @@
         <div id="open-positions-container">
             <div class="p-6 text-center opacity-50">Loading positions...</div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -1030,7 +1032,13 @@
     }
 
     // --- Tab Logic ---
-    function switchTab(tab) {
+    async function switchTab(tab) {
+        const wrapper = document.getElementById('tab-content-wrapper');
+        // Lock height to prevent jumping during load
+        if (wrapper) {
+            wrapper.style.minHeight = wrapper.offsetHeight + 'px';
+        }
+
         currentTab = tab;
         
         const btnTrades = document.getElementById('tab-btn-trades');
@@ -1052,22 +1060,38 @@
         });
 
         // Activate selected
+        let fetchPromise = Promise.resolve();
+
         if (tab === 'trades') {
             btnTrades.className = "pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap";
             contentTrades.classList.remove('hidden');
-            fetchHistory();
+            fetchPromise = fetchHistory();
         } else if (tab === 'ai-logs') {
             btnAi.className = "pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap";
             contentAi.classList.remove('hidden');
-            fetchAiLogs();
+            fetchPromise = fetchAiLogs();
         } else if (tab === 'running-bots') {
             btnBots.className = "pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap";
             contentBots.classList.remove('hidden');
-            fetchRunningBots();
+            fetchPromise = fetchRunningBots();
         } else if (tab === 'positions') {
             btnPos.className = "pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap";
             contentPos.classList.remove('hidden');
-            fetchOpenPositions();
+            fetchPromise = fetchOpenPositions();
+        }
+
+        // Wait for data to load before unlocking height
+        try {
+            await fetchPromise;
+        } catch (e) {
+            console.error(e);
+        }
+
+        // Unlock height only if we are still on the requested tab
+        if (wrapper && currentTab === tab) {
+            requestAnimationFrame(() => {
+                wrapper.style.minHeight = '0px';
+            });
         }
     }
 
