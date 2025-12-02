@@ -420,21 +420,22 @@ select option {
                     <div id="bot-indicator" class="w-2.5 h-2.5 rounded-full bg-gray-500 transition-colors shadow-[0_0_8px_rgba(255,255,255,0.2)]"></div>
                     <span id="bot-status-text" class="text-xs font-bold opacity-90 tracking-wide">System Idle</span>
                 </div>
-                <button onclick="openSettingsModal()" class="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5 shadow-sm" title="Prompt Settings">
-                    <i class="fas fa-cog text-white/70 text-sm"></i>
-                </button>
+                
+                <div class="flex items-center gap-2">
+                     <div class="flex items-center gap-2 bg-violet-500/10 px-3 py-1.5 rounded-lg border border-violet-500/20 h-9">
+                        <i class="fas fa-user-astronaut text-violet-400 text-xs"></i>
+                        <span id="persona-badge" class="text-[10px] font-bold uppercase tracking-wider text-violet-200 truncate max-w-[80px] md:max-w-[120px] transition-opacity">--</span>
+                     </div>
+                    <button onclick="openSettingsModal()" class="w-9 h-9 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5 shadow-sm" title="Prompt Settings">
+                        <i class="fas fa-cog text-white/70 text-sm"></i>
+                    </button>
+             </div>
              </div>
 
              <!-- Middle Row: Toggles & Persona -->
              <div class="flex flex-col gap-3 mb-4">
-                <!-- Persona & Market Stats Row -->
-                <div class="flex items-center justify-between gap-2">
-                     <div class="flex items-center gap-2 bg-violet-500/10 px-2 py-1 rounded border border-violet-500/20">
-                        <i class="fas fa-user-astronaut text-violet-400 text-[10px]"></i>
-                        <span id="persona-badge" class="text-[10px] font-bold uppercase tracking-wider text-violet-200 truncate max-w-[120px] transition-opacity">--</span>
-                     </div>
-                     <div id="market-changes" class="flex gap-2 text-[10px] font-mono opacity-60"></div>
-                </div>
+                <!-- Market Stats Row -->
+                <div id="market-changes" class="flex justify-between items-center gap-2 text-xs font-mono opacity-80 bg-black/20 p-2 rounded-lg border border-white/5 min-h-[32px]"></div>
 
                 <!-- Switches Row -->
                 <div class="grid grid-cols-4 gap-2 bg-black/20 p-2 rounded-xl border border-white/5">
@@ -577,10 +578,7 @@ select option {
     <div class="mt-6">
       <!-- Tabs Navigation -->
       <div class="flex items-center gap-6 mb-4 border-b border-white/10 overflow-x-auto">
-        <button onclick="switchTab('trades')" id="tab-btn-trades" class="pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="fas fa-history text-violet-400"></i> Trades
-        </button>
-        <button onclick="switchTab('ai-logs')" id="tab-btn-ai-logs" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+        <button onclick="switchTab('ai-logs')" id="tab-btn-ai-logs" class="pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
             <i class="fas fa-brain text-violet-400"></i> AI
         </button>
         <button onclick="switchTab('running-bots')" id="tab-btn-running-bots" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
@@ -589,11 +587,55 @@ select option {
         <button onclick="switchTab('positions')" id="tab-btn-positions" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
             <i class="fas fa-list-alt text-violet-400"></i> Positions
         </button>
+        <button onclick="switchTab('trades')" id="tab-btn-trades" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+            <i class="fas fa-history text-violet-400"></i> Trades
+        </button>
       </div>
 
       <div id="tab-content-wrapper">
+      
+      <!-- Tab Content: Running Bots -->
+      <div id="tab-content-running-bots">
+        <div id="running-bots-stats" class="flex items-center gap-4 md:gap-6 overflow-x-auto pb-2 mb-4 border-b border-white/5 no-scrollbar whitespace-nowrap">
+             <!-- Stats injected via JS -->
+        </div>
+        <div id="running-bots-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-1">
+            <div class="glass rounded-xl p-6 text-center opacity-50 col-span-full">Loading bots...</div>
+        </div>
+      </div>
+
+      <!-- Tab Content: AI Logs -->
+      <div id="tab-content-ai-logs" class="hidden">
+        <div class="flex items-center justify-between gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <label class="text-[10px] font-bold uppercase tracking-wide opacity-70">Prompt:</label>
+                <select id="ai-log-filter" onchange="filterAiLogs(this.value)" class="bg-white/10 border border-white/10 rounded px-2 py-1 text-xs focus:outline-none focus:border-violet-500">
+                    <option value="All">All</option>
+                </select>
+            </div>
+            <div class="flex gap-2 text-xs flex-shrink-0">
+                <div class="px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold uppercase">
+                    L: <span id="ai-log-longs">0</span>
+                </div>
+                <div class="px-2 py-1 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold uppercase">
+                    S: <span id="ai-log-shorts">0</span>
+                </div>
+            </div>
+        </div>
+        <div id="ai-logs-container" class="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
+            <div class="glass rounded-xl p-6 text-center opacity-50">Loading AI logs...</div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Open Positions -->
+      <div id="tab-content-positions" class="hidden">
+        <div id="open-positions-container">
+            <div class="p-6 text-center opacity-50">Loading positions...</div>
+        </div>
+      </div>
+
       <!-- Tab Content: Trades -->
-      <div id="tab-content-trades">
+      <div id="tab-content-trades" class="hidden">
         <div class="flex flex-col gap-4 mb-4">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
@@ -631,45 +673,6 @@ select option {
         </div>
       </div>
 
-      <!-- Tab Content: AI Logs -->
-      <div id="tab-content-ai-logs" class="hidden">
-        <div class="flex items-center justify-between gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
-            <div class="flex items-center gap-2 flex-shrink-0">
-                <label class="text-[10px] font-bold uppercase tracking-wide opacity-70">Prompt:</label>
-                <select id="ai-log-filter" onchange="filterAiLogs(this.value)" class="bg-white/10 border border-white/10 rounded px-2 py-1 text-xs focus:outline-none focus:border-violet-500">
-                    <option value="All">All</option>
-                </select>
-            </div>
-            <div class="flex gap-2 text-xs flex-shrink-0">
-                <div class="px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold uppercase">
-                    L: <span id="ai-log-longs">0</span>
-                </div>
-                <div class="px-2 py-1 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold uppercase">
-                    S: <span id="ai-log-shorts">0</span>
-                </div>
-            </div>
-        </div>
-        <div id="ai-logs-container" class="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
-            <div class="glass rounded-xl p-6 text-center opacity-50">Loading AI logs...</div>
-        </div>
-      </div>
-
-      <!-- Tab Content: Running Bots -->
-      <div id="tab-content-running-bots" class="hidden">
-        <div id="running-bots-stats" class="flex items-center gap-4 md:gap-6 overflow-x-auto pb-2 mb-4 border-b border-white/5 no-scrollbar whitespace-nowrap">
-             <!-- Stats injected via JS -->
-        </div>
-        <div id="running-bots-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-1">
-            <div class="glass rounded-xl p-6 text-center opacity-50 col-span-full">Loading bots...</div>
-        </div>
-      </div>
-
-      <!-- Tab Content: Open Positions -->
-      <div id="tab-content-positions" class="hidden">
-        <div id="open-positions-container">
-            <div class="p-6 text-center opacity-50">Loading positions...</div>
-        </div>
-      </div>
       </div>
     </div>
 
@@ -790,7 +793,7 @@ select option {
     let lastFetchedPositions = []; // Store positions for sorting
     let currentAiLogFilter = 'All'; // Persist filter selection
     let currentHistoryRange = 24;
-    let currentTab = 'trades';
+    let currentTab = 'ai-logs';
     let currentPosSort = { field: 'open_time', dir: 'desc' }; // Sort state for positions
     let lastAiSignal = null; // Store last AI signal for modal execution
     let counterTradeActive = false; // New state
@@ -2358,14 +2361,14 @@ select option {
               const v = parseFloat(val);
               const color = v >= 0 ? 'text-green-400' : 'text-red-400';
               const sign = v >= 0 ? '+' : '';
-              return `<span class="${color}">${sign}${v.toFixed(2)}%</span>`;
+              return `<span class="${color} font-bold">${sign}${v.toFixed(2)}%</span>`;
           };
           
           changesEl.innerHTML = `
-            <span title="3h Change">3h: ${fmt(data.changes.change_3h)}</span>
-            <span title="6h Change">6h: ${fmt(data.changes.change_6h)}</span>
-            <span title="12h Change">12h: ${fmt(data.changes.change_12h)}</span>
-            <span title="24h Change" class="hidden md:inline">24h: ${fmt(data.changes.change_24h)}</span>
+            <div class="flex flex-col items-center"><span class="text-[9px] uppercase opacity-50">3h</span>${fmt(data.changes.change_3h)}</div>
+            <div class="flex flex-col items-center"><span class="text-[9px] uppercase opacity-50">6h</span>${fmt(data.changes.change_6h)}</div>
+            <div class="flex flex-col items-center"><span class="text-[9px] uppercase opacity-50">12h</span>${fmt(data.changes.change_12h)}</div>
+            <div class="flex flex-col items-center"><span class="text-[9px] uppercase opacity-50">24h</span>${fmt(data.changes.change_24h)}</div>
           `;
       }
 
@@ -2872,7 +2875,7 @@ select option {
         const badge = document.getElementById('persona-badge');
         if(badge) {
             const displayName = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            badge.textContent = "AI: " + displayName;
+            badge.textContent = displayName;
             badge.classList.remove('opacity-0');
         }
     }
@@ -3497,11 +3500,12 @@ async function openBattleManager() {
     if (!getStoredKey()) {
         showApiKeyModal();
     } else {
-        initPairs(); // Initialize pairs
-        startPolling(); // Start polling loop
-        fetchSettings(); // Fetch settings on load
-        fetchBattles(); // Fetch battle sessions
-        startBattlePolling(); // Start battle polling
+      initPairs();
+      startPolling();
+      fetchSettings();
+      fetchBattles();
+      startBattlePolling();
+      switchTab('ai-logs'); // Show AI tab content on first load
     }
   </script>
 </body>
