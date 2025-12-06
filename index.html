@@ -601,16 +601,16 @@ select option {
 
           <div class="flex gap-3">
             <button id="btn-long" onclick="executeTrade('LONG')" disabled class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 flex items-center justify-center gap-2 disabled:opacity-25 disabled:cursor-not-allowed disabled:grayscale">
-              <i class="fas fa-arrow-up"></i><span>Long</span>
+              <span>Long</span>
             </button>
             <button id="btn-short" onclick="executeTrade('SHORT')" disabled class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 flex items-center justify-center gap-2 disabled:opacity-25 disabled:cursor-not-allowed disabled:grayscale">
-              <i class="fas fa-arrow-down"></i><span>Short</span>
+              </i><span>Short</span>
             </button>
             
             <!-- Trade AI (Single) -->
-<button id="btn-ai" onclick="executeAITrade()" disabled class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 flex items-center justify-center gap-2 disabled:opacity-25 disabled:cursor-not-allowed disabled:grayscale">
-    <i class="fas fa-robot"></i><span>AI Trade</span>
-</button>
+            <button id="btn-ai" onclick="executeAITrade()" disabled class="flex-1 py-3 btn-primary rounded-xl font-semibold text-base bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 flex items-center justify-center gap-2 disabled:opacity-25 disabled:cursor-not-allowed disabled:grayscale">
+                <span>AI Trade</span>
+            </button>
 
             <button id="btn-manual-toggle" onclick="toggleManualTradeButtons()" class="w-12 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 flex flex-col items-center justify-center transition-colors group">
                 <i id="manual-lock-icon" class="fas fa-lock text-white/30 mb-1 group-hover:text-white/60 transition-colors"></i>
