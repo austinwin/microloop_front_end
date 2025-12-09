@@ -926,9 +926,7 @@ select option {
                  </button>
 
                  <!-- Switches Button -->
-                 <button onclick="openSwitchesInfo()" class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group shadow-sm">
-                    <i class="fas fa-sliders-h text-gray-300 text-sm group-hover:scale-110 transition-transform"></i>
-                    <span class="text-xs font-bold opacity-90">Config</span>
+<button onclick="openSwitchesInfo()" class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 rounded-xl bg-purple-900/30 hover:bg-purple-800/40 border border-purple-500/30 transition-all group shadow-sm">                    <span class="text-xs font-bold opacity-90">Config</span>
                  </button>
              </div>
           </div>
@@ -1025,21 +1023,21 @@ select option {
     <div class="mt-6">
       <!-- Tabs Navigation -->
       <div class="flex items-center gap-6 mb-4 border-b border-white/10 overflow-x-auto">
-        <button onclick="switchTab('ai-logs')" id="tab-btn-ai-logs" class="pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="fas fa-brain text-violet-400"></i> Signal
-        </button>
-        <button onclick="switchTab('running-bots')" id="tab-btn-running-bots" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="fas fa-robot text-violet-400"></i> Bots
-        </button>
-        <button onclick="switchTab('positions')" id="tab-btn-positions" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="fas fa-list-alt text-violet-400"></i> Pos
-        </button>
-        <button onclick="switchTab('trades')" id="tab-btn-trades" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="fas fa-history text-violet-400"></i> Trade
-        </button>
-        <button onclick="switchTab('raw-logs')" id="tab-btn-raw-logs" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="fas fa-terminal text-violet-400"></i> Log
-        </button>
+<button onclick="switchTab('running-bots')" id="tab-btn-running-bots" class="pb-2 border-b-2 border-violet-500 text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+    <i class="fas fa-robot text-violet-400"></i> Bots
+</button>
+<button onclick="switchTab('ai-logs')" id="tab-btn-ai-logs" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+    <i class="fas fa-brain text-violet-400"></i> Signal
+</button>
+<button onclick="switchTab('positions')" id="tab-btn-positions" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+    <i class="fas fa-list-alt text-violet-400"></i> Pos
+</button>
+<button onclick="switchTab('trades')" id="tab-btn-trades" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+    <i class="fas fa-history text-violet-400"></i> Trade
+</button>
+<button onclick="switchTab('raw-logs')" id="tab-btn-raw-logs" class="pb-2 border-b-2 border-transparent text-white/50 hover:text-white font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+    <i class="fas fa-terminal text-violet-400"></i> Log
+</button>
       </div>
 
       <div id="tab-content-wrapper">
@@ -1273,7 +1271,7 @@ select option {
     let lastFetchedPositions = []; // Store positions for sorting
     let currentAiLogFilter = 'All'; // Persist filter selection
     let currentHistoryRange = 24;
-    let currentTab = 'ai-logs';
+    let currentTab = 'running-bots';
     let currentPosSort = { field: 'open_time', dir: 'desc' }; // Sort state for positions
     let lastAiSignal = null; // Store last AI signal for modal execution
     let counterTradeActive = false; // New state
@@ -2144,6 +2142,7 @@ select option {
             </div>
 
             <div class="space-y-2">
+              
                 <div class="flex justify-between border-b border-white/5 pb-1">
                     <span class="opacity-60">Leverage</span>
                     <span class="font-mono">${bot.leverage}x</span>
@@ -4326,7 +4325,7 @@ async function openBattleManager() {
       fetchSettings();
       fetchBattles();
       startBattlePolling();
-      switchTab('ai-logs'); // Show AI tab content on first load
+      switchTab('running-bots'); // Show AI tab content on first load
     }
   </script>
 </body>
