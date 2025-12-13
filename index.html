@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Microhyper</title>
+  <title>Ngheo.fun</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <!-- Chart.js & Date Adapter -->
@@ -890,7 +890,7 @@ select option {
         <div class="glass rounded-2xl p-4 md:p-6 glow">
           <div class="flex items-center justify-between mb-4 gap-4">
             <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2">
-              <i class="fas fa-chart-line text-green-400"></i> Microhyper
+              <i class="fas fa-chart-line text-green-400"></i> HyperNgheo
             </h2>
             <div class="flex gap-2 text-xs md:text-sm">
               <button id="btn-close-position" class="px-3 py-1.5 rounded-lg bg-red-600/80 hover:bg-red-700 flex items-center gap-1" onclick="closePosition()">
@@ -1182,7 +1182,7 @@ select option {
 
     <!-- Footer -->
     <div class="text-center mt-6 opacity-60 text-xs md:text-sm">
-      <p>Microhyper@2025 • <span id="clock"></span></p>
+      <p>Hyper Ngheo @ 2025 • <span id="clock"></span></p>
     </div>
   </div>
 
@@ -4467,7 +4467,7 @@ async function openBattleManager() {
       fetchBattles();
       startBattlePolling();
       fetchMarketSentiment();
-      setInterval(fetchMarketSentiment, 15 * 60 * 1000);
+      setInterval(fetchMarketSentiment, 3 * 60 * 1000);
       switchTab('running-bots'); // Show AI tab content on first load
     }
   </script>
