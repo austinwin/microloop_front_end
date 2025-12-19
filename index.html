@@ -3382,7 +3382,7 @@ function updatePairDropdown() {
         // Fetch OHLCV and FGI history in parallel
         const [ohlcvRes, fgiRes] = await Promise.all([
             axios.get(`${getApiBase()}/ohlcv?symbol=${symbol}&interval=${chartInterval}&limit=${limit}`),
-            axios.get(`${getApiBase()}/fgi/history?interval=15m&last_hours=6&symbol=${symbol}`)
+            axios.get(`${getApiBase()}/fgi/history?interval=30m&last_hours=6&symbol=${symbol}`)
         ]);
 
         const data = ohlcvRes.data || [];
