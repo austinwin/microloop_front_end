@@ -3377,12 +3377,12 @@ function updatePairDropdown() {
         // Request enough candles for ~2 hours history
         // 1m: 120 candles = 2 hours
         // 3m: 40 candles = 2 hours (but let's keep 60 for 3h history which is better context)
-        const limit = chartInterval === '1m' ? 120*2 : 60*2;
+        const limit = chartInterval === '1m' ? 60*6 : 30*6; ///6 hours of data
         
         // Fetch OHLCV and FGI history in parallel
         const [ohlcvRes, fgiRes] = await Promise.all([
             axios.get(`${getApiBase()}/ohlcv?symbol=${symbol}&interval=${chartInterval}&limit=${limit}`),
-            axios.get(`${getApiBase()}/fgi/history?interval=15m&last_hours=4&symbol=${symbol}`)
+            axios.get(`${getApiBase()}/fgi/history?interval=15m&last_hours=6&symbol=${symbol}`)
         ]);
 
         const data = ohlcvRes.data || [];
