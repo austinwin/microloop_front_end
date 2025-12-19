@@ -1099,13 +1099,26 @@ select option {
           </div>
 
           <!-- Mini Price Chart -->
-          <div class="mb-4">
+          <div class="mb-4 relative">
             <div class="flex items-center justify-between mb-1 text-xs opacity-75">
               <div class="flex items-center gap-2">
-                <span class="flex items-center gap-1"><i class="fas fa-chart-bar text-violet-400"></i> Price Action (30mFGI)</span>
-                <div class="flex bg-white/10 rounded-lg p-0.5">
-                  <button onclick="setChartInterval('1m')" id="btn-1m" class="px-2 py-0.5 rounded text-[10px] hover:bg-white/10 transition-colors">1m</button>
-                  <button onclick="setChartInterval('3m')" id="btn-3m" class="px-2 py-0.5 rounded text-[10px] bg-violet-500/50 text-white font-bold">3m</button>
+                <span class="flex items-center gap-1"><i class="fas fa-chart-bar text-violet-400"></i> Price Action</span>
+                <div class="flex items-center gap-1">
+                  <!-- FGI Interval Dropdown -->
+                  <select id="mini-chart-fgi-interval" onchange="fetchMiniChart()" class="bg-white/10 border-none rounded px-1 py-0.5 text-[10px] focus:outline-none cursor-pointer hover:bg-white/20 transition-colors">
+                    <option value="15m">FGI 15m</option>
+                    <option value="30m" selected>FGI 30m</option>
+                    <option value="1h">FGI 1h</option>
+                    <option value="4h">FGI 4h</option>
+                  </select>
+                  <!-- Price Interval Dropdown -->
+                  <select id="mini-chart-price-interval" onchange="fetchMiniChart()" class="bg-white/10 border-none rounded px-1 py-0.5 text-[10px] focus:outline-none cursor-pointer hover:bg-white/20 transition-colors">
+                    <option value="1m">1m</option>
+                    <option value="3m" selected>3m</option>
+                    <option value="5m">5m</option>
+                    <option value="15m">15m</option>
+                    <option value="1h">1h</option>
+                  </select>
                 </div>
               </div>
               <span id="mini-chart-label" class="text-[10px] uppercase tracking-wide"></span>
@@ -1122,7 +1135,7 @@ select option {
                    <span id="overlay-pnl" class="font-mono font-bold">--</span>
                 </div>
               </div>
-              <canvas id="mini-chart" class="w-full" height="180"></canvas>
+              <canvas id="mini-chart" class="w-full h-[180px] cursor-crosshair"></canvas>
               <div id="mini-chart-tooltip" class="absolute hidden pointer-events-none bg-black/95 border border-violet-500/40 p-1.5 rounded text-[9px] z-50 shadow-2xl backdrop-blur-md min-w-[110px]"></div>
               <div id="mini-chart-line" class="absolute top-2 bottom-2 w-px bg-white/20 hidden pointer-events-none"></div>
             </div>
@@ -1394,7 +1407,7 @@ select option {
     // ------------------
 
     let selectedDirection = "LONG";
-    let chartInterval = "3m"; // Default to 3m
+    //let chartInterval = "3m"; // Default to 3m
     let lastFetchedTrades = [];
     let lastFetchedAiLogs = []; // New global
     let lastFetchedRawLogs = []; // New global for raw logs
@@ -3364,27 +3377,26 @@ function updatePairDropdown() {
       }
     }
 
-    function setChartInterval(interval) {
-      chartInterval = interval;
-      // Update UI
-      document.getElementById('btn-1m').className = `px-2 py-0.5 rounded text-[10px] transition-colors ${interval === '1m' ? 'bg-violet-500/50 text-white font-bold' : 'hover:bg-white/10'}`;
-      document.getElementById('btn-3m').className = `px-2 py-0.5 rounded text-[10px] transition-colors ${interval === '3m' ? 'bg-violet-500/50 text-white font-bold' : 'hover:bg-white/10'}`;
-      fetchMiniChart();
-    }
-
     async function fetchMiniChart() {
       try {
         const pair = document.getElementById("pair").value;
         const symbol = pair.split("/")[0];
-        // Request enough candles for ~2 hours history
-        // 1m: 120 candles = 2 hours
-        // 3m: 40 candles = 2 hours (but let's keep 60 for 3h history which is better context)
-        const limit = chartInterval === '1m' ? 60*6 : 30*6; ///6 hours of data
+        
+        const priceInterval = document.getElementById("mini-chart-price-interval").value;
+        const fgiInterval = document.getElementById("mini-chart-fgi-interval").value;
+
+        // Request enough candles for ~6-12 hours history
+        let limit = 120; 
+        if (priceInterval === '1m') limit = 360;
+        else if (priceInterval === '3m') limit = 180;
+        else if (priceInterval === '5m') limit = 144;
+        else if (priceInterval === '15m') limit = 48;
+        else if (priceInterval === '1h') limit = 12;
         
         // Fetch OHLCV and FGI history in parallel
         const [ohlcvRes, fgiRes] = await Promise.all([
-            axios.get(`${getApiBase()}/ohlcv?symbol=${symbol}&interval=${chartInterval}&limit=${limit}`),
-            axios.get(`${getApiBase()}/fgi/history?interval=30m&last_hours=6&symbol=${symbol}`)
+            axios.get(`${getApiBase()}/ohlcv?symbol=${symbol}&interval=${priceInterval}&limit=${limit}`),
+            axios.get(`${getApiBase()}/fgi/history?interval=${fgiInterval}&last_hours=12&symbol=${symbol}`)
         ]);
 
         const data = ohlcvRes.data || [];
