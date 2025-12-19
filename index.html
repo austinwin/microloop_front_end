@@ -3660,9 +3660,7 @@ function updatePairDropdown() {
 
         if (!miniCanvas || !miniTooltip || !miniLine) return;
 
-        let lastIdx = -1;
-
-        const handleMove = (clientX, isTouch = false) => {
+        const handleMove = (clientX) => {
             if (!lastMiniChartData || lastMiniChartData.length === 0) return;
             
             const rect = miniCanvas.getBoundingClientRect();
@@ -3675,18 +3673,11 @@ function updatePairDropdown() {
             if (x < padLeft || x > rect.width - padRight) {
                 miniTooltip.classList.add("hidden");
                 miniLine.classList.add("hidden");
-                lastIdx = -1;
                 return;
             }
 
             const idx = Math.floor(((x - padLeft) / chartW) * lastMiniChartData.length);
             if (idx < 0 || idx >= lastMiniChartData.length) return;
-
-            // Haptic feedback when moving to a new data point
-            if (isTouch && idx !== lastIdx && window.navigator && window.navigator.vibrate) {
-                window.navigator.vibrate(10); // Short 10ms pulse
-            }
-            lastIdx = idx;
 
             const d = lastMiniChartData[idx];
             
@@ -3733,18 +3724,19 @@ function updatePairDropdown() {
         };
 
         miniCanvas.addEventListener("mousemove", (e) => {
-            handleMove(e.clientX, false);
+            handleMove(e.clientX);
         });
 
         miniCanvas.addEventListener("touchstart", (e) => {
             if (e.touches.length > 0) {
-                handleMove(e.touches[0].clientX, true);
+                handleMove(e.touches[0].clientX);
             }
         }, { passive: true });
 
         miniCanvas.addEventListener("touchmove", (e) => {
             if (e.touches.length > 0) {
-                handleMove(e.touches[0].clientX, true);
+                handleMove(e.touches[0].clientX);
+                // Prevent scrolling when interacting with the chart
                 if (e.cancelable) e.preventDefault();
             }
         }, { passive: false });
@@ -3752,7 +3744,6 @@ function updatePairDropdown() {
         miniCanvas.addEventListener("mouseleave", () => {
             miniTooltip.classList.add("hidden");
             miniLine.classList.add("hidden");
-            lastIdx = -1;
         });
     })();
     // Consolidated refresh function
